@@ -4,7 +4,7 @@ Installation
 - git clone https://github.com/k0inwork/test_PDU
 - cd test_PDU
 - cd website1
-- pip install -r requirements.txt
+- pip3 install -r requirements.txt --user
 - python3 manage.py runserver
 
 Functionality
