@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <meta charset="utf-8" />
+    <title>PDU Test site</title>
+
+    <script src="https://api-maps.yandex.ru/2.1/?apikey=ab4f9612-c00b-4799-80a0-74e64f1a46df&amp;lang=ru_RU" type="text/javascript">
+    </script>
+
+    <style type="text/css">
+      #map {
+        height: 400px;
+        width: 100%;
+      }
+    </style>
+    
+    
+<script type="text/javascript">
+    ymaps.ready(init);
+    var myMap;
+    var positions = new Map();
+    function init(){
+        myMap = new ymaps.Map("map", {
+            center: [55.76, 37.64],
+            zoom: 7
+        });
+{% for pdu in pdus%}    
+        loc = "{{pdu.location}}";
+        latlon = loc.split(",");
+        pos = [ Number(latlon[0]), Number(latlon[1]) ];
+        status = "{{pdu.state}}"; 
+        
+        if (status == "Unavailable") {
+            color = "grey";
+        } else 
+        color = "green";
+        
+        o = new ymaps.Placemark(pos, {
+            balloonContent: "{{pdu.name}}"
+        }, {
+            preset: 'islands#dotIcon',
+            iconColor: color
+        });
+        
+        myMap.geoObjects.add(o);
+        positions.set("{{ pdu.id }}",pos);
+{% endfor %}
+        myMap.setCenter(pos); 
+    }
+    </script>
+
+
+</head>
+<body>
+{% include "menu.html" %}
+{% load static %}
+
+<div class="container">
+  <div class="row">
+    <h2>PDU list</h2>
+  </div>
+  <div class="row">
+    <div id="map"></div>
+  </div>
+  <table class="table" style="width:100%">
+            <thead>
+            <tr class="d-flex">
+              <th class="col-3" >Name</th>
+              <th class="col-3" >Address</th>
+              <th class="col-4" >State</th>
+              <th class="col-2" >Actions</th>
+            </tr></thead>
+            <tbody>
+    {% for pdu in pdus%}  
+                    <tr class="d-flex">
+                      <td class="col-3" >
+                        {{ pdu.name }}
+                      </td>
+                      <td class="col-3" >
+                        {{ pdu.location }}
+                      </td>
+                      <td class="col-4">
+                        {% if pdu.state == "Unavailable" %}
+                            <span style="color:grey">
+                        {% else %}
+                            <span style="color:green">
+                        {% endif %}                        
+                        {{ pdu.state }}
+                        </span>
+                      </td>
+                      <td class="col-2">
+                        <div>
+                        {% if pdu.state == "Unavailable" %}
+                        {% else %}
+
+       <form class="form-inline" action="/site/disablePDU" method="get">
+          <div class="input-group">
+              <input type="hidden" name="id" value="{{ pdu.id }}"></input>
+               <button type="button" class="btn" onclick="javascript:myMap.setCenter(positions.get('{{pdu.id}}'))">
+                 <img style="height:20px" src="{% static 'site/greenplay.png' %}" aria-hidden="true"></i>
+               </button>
+              <button type="submit" name="button" class="btn" id="bt">
+                 <img style="height:20px" src="{% static 'site/stop.png' %}" aria-hidden="true"></i>
+              </button>
+          </div>
+        </form>                        
+
+        {% endif %}
+                        </div>
+                     </td>
+                    </tr>
+ {% endfor %}        
+            </tbody>
+        </table>   
+  
+</div>
+
+<div style="color:rgb(162,175,201);background:rgb(58,86,147)" class="footer navbar-fixed-bottom text-center">    
+    <span >PUM admin APM</span>
+</div>
+
+
+
+
+
+</body>
+</html>
